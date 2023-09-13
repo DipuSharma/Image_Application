@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sklearn.metrics.pairwise import cosine_similarity
-from fastapi import FastAPI, File, UploadFile, Depends
+from fastapi import FastAPI, File, UploadFile, Depends, Body
 
 app = FastAPI(docs_url="/dts")
 
@@ -40,7 +40,7 @@ async def upload_original_image(file: UploadFile = File(...), db: Session = Depe
     existing_image = db.query(UploadImage).filter(
         UploadImage.image_path == file_path).first()
     if existing_image:
-        return {"status": "failed", "message": 'this image already existed'}
+        return {"status": "failed", "message": 'this image already existed', 'image_id': existing_image.id}
 
     try:
         contents = file.file.read()
@@ -59,7 +59,7 @@ async def upload_original_image(file: UploadFile = File(...), db: Session = Depe
 
 
 @app.post('/check_similarity')
-def find_similar_images(file: UploadFile = File(...), db: Session = Depends(get_db)):
+def find_similar_images(image_id: int = Body(), file: UploadFile = File(...), db: Session = Depends(get_db)):
     # features, database_features,
 
     if not file.filename:
@@ -69,7 +69,7 @@ def find_similar_images(file: UploadFile = File(...), db: Session = Depends(get_
         os.makedirs(File_DIR)
     file_path2 = File_DIR + file.filename
 
-    db_file_path = db.query(UploadImage).first()
+    db_file_path = db.query(UploadImage).filter(UploadImage.id == image_id).first()
     contents = file.file.read()
     with open(file_path2, 'wb+') as f:
         f.write(contents)
