@@ -76,34 +76,33 @@ def find_similar_images(image_id: int = Body(), file: UploadFile = File(...), db
         f.close()
 
     # Extracting code
-    model = tf.keras.applications.VGG16(
-        include_top=False, weights='imagenet', input_shape=(224, 224, 3))
+    model = tf.keras.applications.VGG16(weights='imagenet', include_top=False ,input_shape=(256, 256, 3))
 
     # Preprocess the image and extract features
     img1 = tf.keras.preprocessing.image.load_img(
-        file_path2, target_size=(224, 224))
+        file_path2, target_size=(256, 256))
     x1 = tf.keras.preprocessing.image.img_to_array(img1)
     x1 = np.expand_dims(x1, axis=0)
     x1 = tf.keras.applications.vgg16.preprocess_input(x1)
 
-    features1 = model.predict(x1)
+    features1 = model.predict(x1)[0]
     # End Extracting code
 
     # Preprocess the image and extract features
     img2 = tf.keras.preprocessing.image.load_img(
-        db_file_path.image_path, target_size=(224, 224))
+        db_file_path.image_path, target_size=(256, 256))
     x2 = tf.keras.preprocessing.image.img_to_array(img2)
     x2 = np.expand_dims(x2, axis=0)
     x2 = tf.keras.applications.vgg16.preprocess_input(x2)
 
-    features2 = model.predict(x2)
-    print("feature first_______________",
-          features1[0], "feature second_______________", features2[0])
+    features2 = model.predict(x2)[0]
+    for i in features1:
+        print(i)
 
-    # # Calculate similarity scores
-    similarity_scores = cosine_similarity(features1[0][0], features2[0][0])
+    # Calculate similarity scores
+    similarity_scores = cosine_similarity(features1[0], features2[0])
 
-    # # Find the most similar image
+    # Find the most similar image
     most_similar_image_idx = np.argmax(similarity_scores)
-    print("Similarity____________", most_similar_image_idx)
+    print("Similarity____________", most_similar_image_idx, similarity_scores)
     return True
