@@ -1,5 +1,5 @@
 /.vscode
 */__pycache__
-/image_db.db
+image_db.db
 /static
 /venv
